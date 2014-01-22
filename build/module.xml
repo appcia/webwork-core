@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <target name="core:module:build" depends="core:fs:create, core:db:create, core:fs:fix-permissions, core:i18n:generate-all"/>
+    <target name="core:module:update" depends="core:db:update,core:i18n:generate-all"/>
+    <target name="core:module:clean" depends="core:env:config">
+        <if>
+            <equals arg1="${app.environment}" arg2="dev"/>
+            <then>
+               <phingcall target="core:db:clean"/>
+            </then>
+        </if>
+
+        <phingcall target="core:fs:clean"/>
+    </target>
+
+    <target name="core:module:rebuild" depends="core:module:clean, core:module:build"/>
+
+</project>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <!-- Properties -->
+    <property name="apt.sourcesFile" value="/etc/apt/sources.list"/>
+
+    <!-- Targets -->
+    <target name="core:project:install" description="Install project" depends="core:env:sudo,core:env:config">
+        <exec command="apt-get update" checkreturn="true" passthru="true"/>
+
+        <input message="Do you want to install required PHP extensions and libraries for project?"
+               propertyName="ask.libs" validArgs="y,n" defaultValue="y"/>
+        <if>
+            <equals arg1="${ask.libs}" arg2="y"/>
+            <then>
+                <exec command="apt-get install php5-cli php5-curl php5-gd" checkreturn="true" passthru="true"/>
+                <exec command="apt-get install gettext php-gettext" checkreturn="true" passthru="true"/>
+                <exec command="apt-get install memcached php5-memcache php5-memcached php-apc" checkreturn="true"
+                      passthru="true"/>
+            </then>
+        </if>
+
+        <!-- Database -->
+        <if>
+            <or>
+                <equals arg1="${db.driver}" arg2="pdo_mysql"/>
+                <equals arg1="${db.driver}" arg2="mysqli"/>
+            </or>
+            <then>
+                <input message="Do you want to install database? (MySQL)" propertyName="ask.db"
+                       validArgs="y,n" defaultValue="y"/>
+                <if>
+                    <equals arg1="${ask.db}" arg2="y"/>
+                    <then>
+                        <exec command="apt-get install mysql-server php5-mysql" checkreturn="true" passthru="true"/>
+
+                        <input message="Do you want to create new database? (MySQL)" propertyName="ask.db.create"
+                               validArgs="y,n" defaultValue="y"/>
+                        <if>
+                            <equals arg1="${ask.db.create}" arg2="y"/>
+                            <then>
+                                <input message="Specify name:" propertyName="ask.db.name" defaultValue="${db.dbname}"/>
+
+                                <exec command="mysql -u root -p -e 'CREATE DATABASE ${ask.db.name} CHARSET utf8 COLLATE utf8_general_ci;'"
+                                      checkreturn="true" passthru="true"/>
+                            </then>
+                        </if>
+                    </then>
+                </if>
+            </then>
+        </if>
+
+        <!-- XDebug -->
+        <if>
+            <equals arg1="${app.environment}" arg2="dev"/>
+            <then>
+                <input message="Do you want to install XDebug? (php debugger)" propertyName="ask.xdebug"
+                       validArgs="y,n" defaultValue="y"/>
+                <if>
+                    <equals arg1="${ask.xdebug}" arg2="y"/>
+                    <then>
+                        <property name="xdebug.file" value="/etc/php5/mods-available/xdebug.ini"/>
+                        <property name="xdebug.remote" value="xdebug.remote_enable = on"/>
+
+                        <exec command="apt-get install php5-xdebug" checkReturn="true" passthru="true"/>
+                        <exec command="cat ${xdebug.file} | grep '${xdebug.remote}'" returnProperty="xdebug.configured"/>
+
+                        <if>
+                            <not>
+                                <equals arg1="${xdebug.configured}" arg2="0"/>
+                            </not>
+                            <then>
+                                <append destFile="${xdebug.file}" text="${line.separator}${xdebug.remote}"/>
+                            </then>
+                        </if>
+
+                    </then>
+                </if>
+
+            </then>
+        </if>
+
+        <!-- Sonar -->
+        <input message="Do you want to install Sonar? (code quality inspections)" propertyName="ask.sonar"
+               validArgs="y,n" defaultValue="n"/>
+        <if>
+            <equals arg1="${ask.sonar}" arg2="y"/>
+            <then>
+                <property name="sonar.deb" value="deb http://downloads.sourceforge.net/project/sonar-pkg/deb binary"/>
+                <exec command="cat ${apt.sourcesFile} | grep '${sonar.deb}'" returnProperty="apt.sonar.deb.found"/>
+
+                <if>
+                    <not>
+                        <equals arg1="${apt.sonar.deb.found}" arg2="0"/>
+                    </not>
+                    <then>
+                        <append destFile="${apt.sourcesFile}" text="${line.separator}${sonar.deb}/"/>
+                        <exec command="apt-get update"/>
+                    </then>
+                </if>
+
+                <exec command="apt-get install sonar" checkReturn="true" passthru="true"/>
+                <exec command="service sonar start" checkReturn="true" passthru="true"/>
+            </then>
+        </if>
+
+        <input message="Do you want to create a virtual host?" propertyName="ask.vhost" validArgs="y,n"
+               defaultValue="y"/>
+        <if>
+            <equals arg1="${ask.vhost}" arg2="y"/>
+            <then>
+                <phingcall target="core:www:vhost:create"/>
+            </then>
+        </if>
+    </target>
+
+    <target name="core:project:setup" description="Setup project environment">
+        <if>
+            <available file="${project.envFile}" type="file"/>
+            <then>
+                <input message="Project setup is done already. Do you want remove previous configuration and create it again?"
+                       propertyName="ask.setup" validArgs="y,n" defaultValue="n"/>
+                <if>
+                    <equals arg1="${ask.setup}" arg2="y"/>
+                    <then>
+                        <delete file="${project.envFile}"/>
+                    </then>
+                    <else>
+                        <fail message="Project setup cancelled."/>
+                    </else>
+                </if>
+            </then>
+        </if>
+
+        <!-- Environment -->
+        <input message="Specify environment type:" propertyName="app.environment" validArgs="dev,prod"
+               defaultValue="dev"/>
+
+        <propertyexport file="${project.envFile}" filter="app.*"/>
+    </target>
+
+    <!-- Multiple module building -->
+    <target name="core:project:build" description="Build project" depends="core:env:config">
+        <foreach list="${project.build}" param="module" target="core:project:build-module"/>
+    </target>
+
+    <target name="core:project:build-module" hidden="true">
+        <phingcall target="${module}:module:build"/>
+    </target>
+
+    <target name="core:project:clean" description="Build project" depends="core:env:config">
+        <foreach list="${project.clean}" param="module" target="core:project:clean-module"/>
+    </target>
+
+    <target name="core:project:clean-module" hidden="true">
+        <phingcall target="${module}:module:clean"/>
+    </target>
+
+    <target name="core:project:update" description="Build project" depends="core:env:config">
+        <foreach list="${project.build}" param="module" target="core:project:update-module"/>
+    </target>
+
+    <target name="core:project:update-module" hidden="true">
+        <phingcall target="${module}:module:update"/>
+    </target>
+
+    <target name="core:project:rebuild" description="Rebuild project" depends="core:project:clean, core:project:build"/>
+
+</project>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <target name="core:i18n:parse-path" description="Parse PHP source path for translatable strings">
+        <input message="PHP source path" propertyName="path"/>
+        <input message="PO target file" propertyName="file"/>
+
+        <exec command="xgettext --from-code=UTF-8 -L PHP -o ${file} $(find ${path} -name '*.php')"
+              checkreturn="true" passthru="true"/>
+
+        <echo msg="Path parsed, messages saved to: '${file}'"/>
+    </target>
+
+    <target name="core:i18n:parse-module" description="Parse project module for translatable strings">
+        <input message="Module name:" propertyName="module"/>
+        <input message="Locale:" propertyName="locale"/>
+
+        <property name="path" value="module/${module}/locale/${locale}/LC_MESSAGES"/>
+
+        <mkdir dir="${path}"/>
+
+        <if>
+            <available file="${path}/module.po"/>
+            <then>
+                <exec command="xgettext --from-code=UTF-8 -L PHP -o ${path}/module.po.parse $(find module/${module} -name '*.php')"
+                      checkreturn="true" passthru="true"/>
+                <exec command="msgmerge  ${path}/module.po ${path}/module.po.parse -o ${path}/module.po.merge"
+                      checkreturn="true" passthru="true"/>
+
+                <move file="${path}/module.po.merge" tofile="${path}/module.po" overwrite="true" haltonerror="true"/>
+                <delete file="${path}/module.po.parse" failonerror="true"/>
+            </then>
+            <else>
+                <exec command="xgettext --from-code=UTF-8 -L PHP -o ${path}/module.po $(find module/${module} -name '*.php')"
+                      checkreturn="true" passthru="true"/>
+            </else>
+        </if>
+
+        <echo msg="Module parsed, messages saved to: '${path}/module.po'"/>
+    </target>
+
+    <target name="core:i18n:generate-all" description="Generate translations from all modules in all supported locales" depends="core:env:config">
+        <phingcall target="core:i18n:generate">
+            <property name="locale" value="pl_PL"/>
+        </phingcall>
+    </target>
+
+    <target name="core:i18n:generate">
+        <property name="path" value="${corePath}/cache/locale/${locale}/LC_MESSAGES"/>
+
+        <echo msg="Generating files for locale '${locale}' in '${path}'"/>
+
+        <exec command="mkdir -p ${path}" checkreturn="true" passthru="true"/>
+
+        <exec command="msgcat -o ${path}/messages.po $(find module/*/locale/${locale} -name '*.po')"
+              checkreturn="true" passthru="true"/>
+        <exec command="msgfmt -o ${path}/messages.mo ${path}/messages.po"
+              checkreturn="true" passthru="true"/>
+    </target>
+
+</project>

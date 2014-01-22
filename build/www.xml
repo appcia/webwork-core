@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <target name="core:www:server:restart" description="Restart a web server" depends="core:env:sudo, core:env:config">
+
+        <if>
+            <equals arg1="${app.server}" arg2="apache"/>
+            <then>
+                <exec command="service apache2 restart" passthru="true" checkreturn="true"/>
+            </then>
+        </if>
+
+    </target>
+
+    <target name="core:www:vhost:create" description="Create a virtual host for current environment"
+            depends="core:env:sudo, core:env:config">
+
+        <input propertyName="name" defaultValue="${context.domain}" message="Host name:"/>
+        <input propertyName="admin" defaultValue="admin@${name}" message="Admin e-mail:"/>
+
+        <if>
+            <equals arg1="${app.server}" arg2="apache"/>
+            <then>
+                <input propertyName="path" defaultValue="/etc/apache2/sites-available"
+                       message="Where to save virtual host configuration?"/>
+
+                <property name="vhostPath" value="${path}/${name}.conf"/>
+                <property name="logPath" value="${corePath}/log"/>
+
+                <if>
+                    <not>
+                        <available file="${vhostPath}"/>
+                    </not>
+                    <then>
+                        <mkdir dir="${logPath}" mode="0777"/>
+
+                        <copy file="${corePath}/config/${app.environment}/vhost/apache.conf" tofile="${vhostPath}"
+                              overwrite="true" haltonerror="true">
+                            <filterchain>
+                                <replaceregexp>
+                                    <regexp pattern="{serverName}" replace="${name}"/>
+                                    <regexp pattern="{serverAdmin}" replace="${admin}"/>
+                                    <regexp pattern="{documentRoot}" replace="${projectPath}"/>
+                                    <regexp pattern="{logPath}" replace="${logPath}"/>
+                                </replaceregexp>
+                            </filterchain>
+                        </copy>
+
+                        <append destFile="/etc/hosts" text="${line.separator}127.0.0.1 ${name}"/>
+
+                        <exec command="a2ensite ${name}" passthru="true" checkreturn="true"/>
+                        <exec command="a2enmod rewrite" passthru="true" checkreturn="true"/>
+                    </then>
+                </if>
+            </then>
+        </if>
+
+        <phingcall target="core:www:server:restart"/>
+
+        <echo message="Virtual host created. Check address in browser. ${name}"/>
+
+    </target>
+    
+</project>

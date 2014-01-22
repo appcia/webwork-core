@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="core:dev:unit-test:run-all" description="Run all unit tests" depends="core:env:config">
+        <exec command="bin/phpunit --bootstrap bootstrap.php --configuration test/phpunit.xml" passthru="true"
+              checkreturn="true"/>
+    </target>
+
+    <target name="core:dev:unit-test:run-path" description="Run unit tests in specified path" depends="core:env:config">
+        <input propertyName="path" defaultValue="test" message="Enter tests path"/>
+
+        <exec command="bin/phpunit --bootstrap bootstrap.php --configuration test/phpunit.xml ${path}"
+              passthru="true" checkreturn="true"/>
+    </target>
+
+    <target name="core:dev:sonar:inspect" description="Run code quality inspections">
+        <exec command="export PATH=$PATH.$(pwd)/bin ; vendor/sonar/runner/bin/sonar-runner" passthru="true"
+              checkreturn="true"/>
+    </target>
+    
+</project>

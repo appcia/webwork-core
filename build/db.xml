@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <target name="core:db:clear-cache" description="Clear database cache" depends="core:env:config">
+        <exec command="bin/doctrine orm:clear-cache:result" passthru="true"/>
+        <exec command="bin/doctrine orm:clear-cache:metadata" passthru="true"/>
+        <exec command="bin/doctrine orm:clear-cache:query" passthru="true"/>
+
+        <exec command="bin/app cache:clear" passthru="false"/>
+    </target>
+
+    <target name="core:db:create" depends="core:fs:create, core:env:config"
+            description="Create database schema, insert data from fixtures">
+        <mkdir dir="${corePath}/cache/proxy"/>
+        <exec command="bin/doctrine orm:schema-tool:create" passthru="true" checkreturn="true"/>
+        <exec command="bin/doctrine orm:generate-proxies" passthru="true" checkreturn="true"/>
+        <exec command="bin/app data-fixture:load" passthru="true" checkreturn="true"/>
+    </target>
+
+    <target name="core:db:clean" depends="core:db:clear-cache, core:env:config"
+            description="Clean database schema losing all data">
+        <exec command="bin/doctrine orm:schema-tool:drop --force" passthru="true" checkreturn="true"/>
+    </target>
+
+    <target name="core:db:update" depends="core:db:clear-cache, core:env:config"
+            description="Update database schema">
+        <exec command="bin/doctrine orm:schema-tool:update --force" passthru="true" checkreturn="true"/>
+        <exec command="bin/doctrine orm:generate-proxies" passthru="true" checkreturn="true"/>
+    </target>
+
+</project>

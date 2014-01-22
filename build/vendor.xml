@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <target name="core:vendor:install" description="Install vendor libraries">
+        <exec command="php composer.phar install --dev" checkreturn="true" passthru="true"/>
+    </target>
+
+    <target name="core:vendor:update" description="Download and install latest vendor libraries">
+        <exec command="php composer.phar update --dev" checkreturn="true" passthru="true"/>
+    </target>
+
+    <target name="core:vendor:clean" description="Delete vendor libraries">
+        <delete dir="vendor"/>
+    </target>
+
+</project>
