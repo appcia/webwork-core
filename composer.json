@@ -7,7 +7,25 @@
             "email": "ciapunek@appcia.pl"
         }
     ],
+    "scripts": {
+        "post-install-cmd": "ln -s vendor/appcia/webwork-core module/core"
+    },
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "sonar/runner",
+                "version": "2.2.2",
+                "dist": {
+                    "url": "http://repo1.maven.org/maven2/org/codehaus/sonar/runner/sonar-runner-dist/2.2.2/sonar-runner-dist-2.2.2.zip",
+                    "type": "zip"
+                }
+            }
+        }
+    ],
     "require": {
+        "php": ">=5.3",
+        "phing/phing": "2.5.*",
         "appcia/webwork": "dev-master",
         "appcia/phing": "dev-master",
         "doctrine/common": "2.4.*",
@@ -22,7 +40,11 @@
         "leafo/lessphp": "v0.4.0",
         "leafo/scssphp": "dev-master"
     },
-    "scripts": {
-        "post-install-cmd": "ln -s vendor/appcia/webwork-core module/core"
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*",
+        "pdepend/pdepend" : "1.1.*",
+        "phpmd/phpmd": "1.4.*",
+        "squizlabs/php_codesniffer": "1.4.*",
+        "sonar/runner": "*"
     }
 }
