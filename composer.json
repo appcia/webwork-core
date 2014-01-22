@@ -8,7 +8,19 @@
         }
     ],
     "require": {
-
+        "appcia/webwork": "dev-master",
+        "appcia/phing": "dev-master",
+        "doctrine/common": "2.4.*",
+        "doctrine/orm": "2.4.*",
+        "doctrine/dbal": "2.4.*",
+        "doctrine/data-fixtures": "1.0.*@dev",
+        "gregwar/captcha": "1.0.9",
+        "gregwar/image": "v2.0.6",
+        "swiftmailer/swiftmailer": "v5.0.2",
+        "monolog/monolog": "1.5.*",
+        "mrclay/minify": "2.1.7",
+        "leafo/lessphp": "v0.4.0",
+        "leafo/scssphp": "dev-master"
     },
     "scripts": {
         "post-install-cmd": "ln -s vendor/appcia/webwork-core module/core"
