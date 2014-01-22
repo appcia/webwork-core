@@ -11,5 +11,6 @@
 
     },
     "scripts": {
+        "post-install-cmd": "ln -s vendor/appcia/webwork-core module/core"
     }
 }
