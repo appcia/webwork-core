@@ -7,9 +7,6 @@
             "email": "ciapunek@appcia.pl"
         }
     ],
-    "scripts": {
-        "post-install-cmd": "ln -s vendor/appcia/webwork-core module/core"
-    },
     "repositories": [
         {
             "type": "package",
@@ -24,8 +21,12 @@
         }
     ],
     "require": {
-        "php": ">=5.3",
-        "phing/phing": "2.5.*",
+        "php": ">=5.2.4",
+        "ext-PDO": "*",
+        "ext-gettext": "*",
+        "ext-gd": "*",
+        "ext-json": "*",
+
         "appcia/webwork": "dev-master",
         "appcia/phing": "dev-master",
         "doctrine/common": "2.4.*",
