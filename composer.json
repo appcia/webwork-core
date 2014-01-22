@@ -1,0 +1,15 @@
+{
+    "name": "appcia/webwork-core",
+    "description": "Core module for projects based on Appcia Webwork",
+    "authors": [
+        {
+            "name": "ciapunek",
+            "email": "ciapunek@appcia.pl"
+        }
+    ],
+    "require": {
+
+    },
+    "scripts": {
+    }
+}
