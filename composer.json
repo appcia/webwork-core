@@ -7,12 +7,9 @@
             "email": "ciapunek@appcia.pl"
         }
     ],
-<<<<<<< HEAD
-=======
     "scripts": {
         "post-install-cmd": "ln -s $(pwd)/vendor/appcia/webwork-core $(pwd)/module/core"
     },
->>>>>>> Post install cmd 2
     "repositories": [
         {
             "type": "package",
