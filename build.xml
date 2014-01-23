@@ -2,9 +2,11 @@
 <project>
 
     <!-- Properties -->
+
     <property name="corePath" value="${projectPath}/module/core"/>
 
     <!-- Sections -->
+
     <import file="${corePath}/build/vendor.xml"/>
     <import file="${corePath}/build/env.xml"/>
     <import file="${corePath}/build/i18n.xml"/>
@@ -13,6 +15,7 @@
     <import file="${corePath}/build/dev.xml"/>
     <import file="${corePath}/build/www.xml"/>
     <import file="${corePath}/build/module.xml"/>
+    <import file="${corePath}/build/tool.xml"/>
     <import file="${corePath}/build/project.xml"/>
 
 </project>

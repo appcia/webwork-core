@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <!-- Properties -->
+
+    <property name="apt.sourcesFile" value="/etc/apt/sources.list"/>
+
+    <!-- Targets -->
+
+    <target name="core:tool:libs" depends="core:env:sudo" description="Install additional libraries for project">
+        <exec command="apt-get install memcached php5-memcache php5-memcached php-apc" checkreturn="true"
+              passthru="true"/>
+    </target>
+
+    <target name="core:tool:database" depends="core:env:sudo,core:env:config" description="Create database for project">
+        <if>
+            <or>
+                <equals arg1="${db.driver}" arg2="pdo_mysql"/>
+                <equals arg1="${db.driver}" arg2="mysqli"/>
+            </or>
+            <then>
+                <exec command="apt-get install mysql-server php5-mysql" checkreturn="true" passthru="true"/>
+
+                <input message="Do you want to create new database? (MySQL)" propertyName="ask.db.create"
+                       validArgs="y,n" defaultValue="y"/>
+                <if>
+                    <equals arg1="${ask.db.create}" arg2="y"/>
+                    <then>
+                        <input message="Specify name:" propertyName="ask.db.name" defaultValue="${db.dbname}"/>
+                        <echo msg="Enter password for 'root' mysql user:"/>
+                        <exec command="mysql -u root -p -e 'CREATE DATABASE ${ask.db.name} CHARSET utf8 COLLATE utf8_general_ci;'"
+                              checkreturn="true" passthru="true"/>
+                    </then>
+                </if>
+            </then>
+            <else>
+                <fail message="Database driver ${db.driver} is not supported"/>
+            </else>
+        </if>
+    </target>
+
+    <target name="core:tool:xdebug" depends="core:env:sudo,core:env:config" description="Install and configure XDebug (debugger)">
+        <property name="xdebug.file" value="/etc/php5/mods-available/xdebug.ini"/>
+        <property name="xdebug.remote" value="xdebug.remote_enable = on"/>
+
+        <exec command="apt-get install php5-xdebug" checkReturn="true" passthru="true"/>
+        <exec command="cat ${xdebug.file} | grep '${xdebug.remote}'" returnProperty="xdebug.configured"/>
+
+        <if>
+            <not>
+                <equals arg1="${xdebug.configured}" arg2="0"/>
+            </not>
+            <then>
+                <append destFile="${xdebug.file}" text="${line.separator}${xdebug.remote}"/>
+            </then>
+        </if>
+    </target>
+
+    <target name="core:tool:sonar" depends="core:env:sudo,core:env:config" description="Install sonar (code quality inspections)">
+        <property name="sonar.deb" value="deb http://downloads.sourceforge.net/project/sonar-pkg/deb binary"/>
+        <exec command="cat ${apt.sourcesFile} | grep '${sonar.deb}'" returnProperty="apt.sonar.deb.found"/>
+
+        <if>
+            <not>
+                <equals arg1="${apt.sonar.deb.found}" arg2="0"/>
+            </not>
+            <then>
+                <append destFile="${apt.sourcesFile}" text="${line.separator}${sonar.deb}/"/>
+                <exec command="apt-get update"/>
+            </then>
+        </if>
+
+        <exec command="apt-get install sonar" checkReturn="true" passthru="true"/>
+        <exec command="service sonar start" checkReturn="true" passthru="true"/>
+    </target>
+</project>
+
+

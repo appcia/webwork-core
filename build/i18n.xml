@@ -22,7 +22,7 @@
         <if>
             <available file="${path}/module.po"/>
             <then>
-                <exec command="xgettext --from-code=UTF-8 -L PHP -o ${path}/module.po.parse $(find module/${module} -name '*.php')"
+                <exec command="xgettext --from-code=UTF-8 -L PHP -o ${path}/module.po.parse $(find -L module/${module} -name '*.php')"
                       checkreturn="true" passthru="true"/>
                 <exec command="msgmerge  ${path}/module.po ${path}/module.po.parse -o ${path}/module.po.merge"
                       checkreturn="true" passthru="true"/>
