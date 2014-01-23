@@ -23,6 +23,7 @@
             }
         }
     ],
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.2.4",
         "ext-PDO": "*",
